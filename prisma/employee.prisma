@@ -1,7 +1,7 @@
 model Employee {
   id           Int              @id @default(autoincrement())
-  name         String           @db.VarChar(150)
-  cpf          String           @unique @db.VarChar(11)
+  name         String           
+  cpf          String           @unique
   arrivalTime  String
   exitTime     String
   createdAt    DateTime         @default(now())
