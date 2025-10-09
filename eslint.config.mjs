@@ -38,7 +38,6 @@ export default [
             ['@ds-api', './src'],
             ['@ds-common', './src/common'],
             ['@ds-modules', './src/modules'],
-            ['@ds-dtos', './src/dtos'],
           ],
           extensions: ['.ts', '.js', '.json'],
         },

@@ -21,5 +21,10 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
+  },
+  "paths": {
+    "@ds-common/*": ["src/common/*"],
+    "@ds-modules/*": ["src/modules/*"],
+    "@ds-api/*": ["src/*"]
   }
 }
