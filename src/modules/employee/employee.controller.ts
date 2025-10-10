@@ -10,6 +10,7 @@ import {
 
 import { EmployeeService } from './employee.service';
 import { EmployeeDto } from './dtos/employee.dto';
+import { FindAllEmployeeDto } from './dtos/find-all-employees.dto';
 
 import { Employee } from 'generated/prisma';
 import { ApiResponseType } from 'src/common/types/api-response.type';
@@ -50,5 +51,32 @@ export class EmployeeController {
     const employee = await this.employeeService.findById(id, select);
 
     return { data: employee };
+  }
+
+  @Get()
+  public async findAll(
+    @Query() query: FindAllEmployeeDto,
+  ): Promise<ApiResponseType<Employee[]>> {
+    const fields = query.fields ?? [];
+    const allowed = [
+      'id',
+      'name',
+      'cpf',
+      'email',
+      'arrivalTime',
+      'exitTime',
+      'created_at',
+      'updated_at',
+    ];
+
+    const select = buildSelectObject(fields, allowed);
+
+    const employees = await this.employeeService.findAll(query, select);
+
+    return {
+      data: employees,
+      pagination: { skip: query.skip, limit: query.limit },
+      total: employees.length,
+    };
   }
 }

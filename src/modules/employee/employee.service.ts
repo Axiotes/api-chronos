@@ -6,6 +6,7 @@ import {
 
 import { EmployeeRepository } from './employee.repository';
 import { EmployeeDto } from './dtos/employee.dto';
+import { FindEmployeeDto } from './dtos/find-employee.dto';
 
 import { Employee, Prisma } from 'generated/prisma';
 
@@ -38,5 +39,52 @@ export class EmployeeService {
     }
 
     return employee;
+  }
+
+  public async findAll(
+    findEmployeeDto: FindEmployeeDto,
+    select?: Prisma.EmployeeSelect,
+  ): Promise<Employee[]> {
+    let where = {};
+
+    const filters: { [K in keyof FindEmployeeDto]?: () => void } = {
+      cpf: () => (where = { ...where, cpf: findEmployeeDto.cpf }),
+      name: () =>
+        (where = {
+          ...where,
+          name: { contains: findEmployeeDto.name, mode: 'insensitive' },
+        }),
+      arrivalTime: () =>
+        (where = {
+          ...where,
+          arrivalTime: {
+            contains: findEmployeeDto.arrivalTime,
+            mode: 'insensitive',
+          },
+        }),
+      exitTime: () =>
+        (where = {
+          ...where,
+          exitTime: {
+            contains: findEmployeeDto.exitTime,
+            mode: 'insensitive',
+          },
+        }),
+    };
+
+    for (const key in findEmployeeDto) {
+      if (key === 'skip' || key === 'limit') continue;
+
+      const func = filters[key];
+
+      if (func) func();
+    }
+
+    return await this.employeeRepository.findAll(
+      findEmployeeDto.skip,
+      findEmployeeDto.limit,
+      where,
+      select,
+    );
   }
 }

@@ -34,4 +34,18 @@ export class EmployeeRepository {
       select,
     });
   }
+
+  public async findAll<T extends Prisma.EmployeeSelect>(
+    skip: number,
+    limit: number,
+    where: Prisma.EmployeeWhereInput = {},
+    select?: T,
+  ): Promise<Prisma.EmployeeGetPayload<{ select: T }>[]> {
+    return this.prisma.employee.findMany({
+      where,
+      skip,
+      take: limit,
+      select,
+    });
+  }
 }
