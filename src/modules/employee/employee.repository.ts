@@ -23,4 +23,15 @@ export class EmployeeRepository {
       select,
     });
   }
+
+  public async findById<T extends Prisma.EmployeeSelect>(
+    id: number,
+    select?: T,
+    active = true,
+  ): Promise<Prisma.EmployeeGetPayload<{ select: T }> | null> {
+    return this.prisma.employee.findUnique({
+      where: { id, active },
+      select,
+    });
+  }
 }

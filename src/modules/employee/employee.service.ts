@@ -1,9 +1,13 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { EmployeeRepository } from './employee.repository';
 import { EmployeeDto } from './dtos/employee.dto';
 
-import { Employee } from 'generated/prisma';
+import { Employee, Prisma } from 'generated/prisma';
 
 @Injectable()
 export class EmployeeService {
@@ -21,5 +25,18 @@ export class EmployeeService {
     }
 
     return await this.employeeRepository.create(employee);
+  }
+
+  public async findById(
+    id: number,
+    select?: Prisma.EmployeeSelect,
+  ): Promise<Employee> {
+    const employee = await this.employeeRepository.findById(id, select);
+
+    if (!employee) {
+      throw new NotFoundException(`Employee with ID "${id}" not found`);
+    }
+
+    return employee;
   }
 }
