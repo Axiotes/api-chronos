@@ -1,25 +1,24 @@
 import { Injectable } from '@nestjs/common';
+import { Employee, Prisma } from '@prisma/client';
 
 import { EmployeeDto } from './dtos/employee.dto';
 
-import { Employee, Prisma } from 'generated/prisma';
 import { PrismaService } from 'src/common/services/prisma/prisma.service';
 
 @Injectable()
 export class EmployeeRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  public async create(employee: EmployeeDto): Promise<Employee> {
+  public async create(employee: EmployeeDto): Promise<Employee | null> {
     return await this.prisma.employee.create({ data: employee });
   }
 
   public async findByCpf<T extends Prisma.EmployeeSelect>(
     cpf: string,
     select?: T,
-    active = true,
-  ): Promise<Prisma.EmployeeGetPayload<{ select: T }> | null> {
+  ): Promise<any> {
     return this.prisma.employee.findUnique({
-      where: { cpf, active },
+      where: { cpf },
       select,
     });
   }
@@ -27,10 +26,9 @@ export class EmployeeRepository {
   public async findById<T extends Prisma.EmployeeSelect>(
     id: number,
     select?: T,
-    active = true,
-  ): Promise<Prisma.EmployeeGetPayload<{ select: T }> | null> {
+  ): Promise<any> {
     return this.prisma.employee.findUnique({
-      where: { id, active },
+      where: { id },
       select,
     });
   }
@@ -40,12 +38,22 @@ export class EmployeeRepository {
     limit: number,
     where: Prisma.EmployeeWhereInput = {},
     select?: T,
-  ): Promise<Prisma.EmployeeGetPayload<{ select: T }>[]> {
+  ): Promise<any> {
     return this.prisma.employee.findMany({
       where,
       skip,
       take: limit,
       select,
+    });
+  }
+
+  public async update(
+    id: number,
+    employee: Partial<Employee>,
+  ): Promise<Employee> {
+    return this.prisma.employee.update({
+      where: { id },
+      data: employee,
     });
   }
 }

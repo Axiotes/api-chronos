@@ -4,18 +4,21 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
+import { Employee } from '@prisma/client';
 
 import { EmployeeService } from './employee.service';
 import { EmployeeDto } from './dtos/employee.dto';
 import { FindAllEmployeeDto } from './dtos/find-all-employees.dto';
+import { UpdateEmployeeDto } from './dtos/update-employee.dto';
 
-import { Employee } from 'generated/prisma';
 import { ApiResponseType } from 'src/common/types/api-response.type';
 import { SelectFieldsDto } from 'src/common/dtos/select-fields.dto';
 import { buildSelectObject } from 'src/common/helpers/build-select-object.helper';
+
 
 @Controller('employee')
 export class EmployeeController {
@@ -78,5 +81,15 @@ export class EmployeeController {
       pagination: { skip: query.skip, limit: query.limit },
       total: employees.length,
     };
+  }
+
+  @Patch(':id')
+  public async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateEmployeeDto: UpdateEmployeeDto,
+  ): Promise<ApiResponseType<Employee>> {
+    const employee = await this.employeeService.update(id, updateEmployeeDto);
+
+    return { data: employee };
   }
 }
