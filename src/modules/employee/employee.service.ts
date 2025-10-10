@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Employee, Prisma } from '@prisma/client';
 
 import { EmployeeRepository } from './employee.repository';
 import { EmployeeDto } from './dtos/employee.dto';
@@ -14,7 +14,7 @@ import { UpdateEmployeeDto } from './dtos/update-employee.dto';
 export class EmployeeService {
   constructor(private readonly employeeRepository: EmployeeRepository) {}
 
-  public async create(employee: EmployeeDto): Promise<any> {
+  public async create(employee: EmployeeDto): Promise<Employee> {
     const employeeCpf = await this.employeeRepository.findByCpf(employee.cpf, {
       cpf: true,
     });
@@ -31,7 +31,7 @@ export class EmployeeService {
   public async findById(
     id: number,
     select?: Prisma.EmployeeSelect,
-  ): Promise<any> {
+  ): Promise<Employee> {
     const employee = await this.employeeRepository.findById(id, select);
 
     if (!employee) {
@@ -44,7 +44,7 @@ export class EmployeeService {
   public async findAll(
     findEmployeeDto: FindEmployeeDto,
     select?: Prisma.EmployeeSelect,
-  ): Promise<any[]> {
+  ): Promise<Employee[]> {
     let where = {};
 
     const filters: { [K in keyof FindEmployeeDto]?: () => void } = {
@@ -91,7 +91,7 @@ export class EmployeeService {
   public async update(
     id: number,
     updateEmployeeDto: UpdateEmployeeDto,
-  ): Promise<any> {
+  ): Promise<Employee> {
     const employee = await this.findById(id);
 
     if (updateEmployeeDto.cpf && updateEmployeeDto.cpf !== employee.cpf) {

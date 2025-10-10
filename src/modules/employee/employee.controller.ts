@@ -19,7 +19,6 @@ import { ApiResponseType } from 'src/common/types/api-response.type';
 import { SelectFieldsDto } from 'src/common/dtos/select-fields.dto';
 import { buildSelectObject } from 'src/common/helpers/build-select-object.helper';
 
-
 @Controller('employee')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}

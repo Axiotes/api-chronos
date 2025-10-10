@@ -9,14 +9,14 @@ import { PrismaService } from 'src/common/services/prisma/prisma.service';
 export class EmployeeRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  public async create(employee: EmployeeDto): Promise<Employee | null> {
+  public async create(employee: EmployeeDto): Promise<Employee> {
     return await this.prisma.employee.create({ data: employee });
   }
 
   public async findByCpf<T extends Prisma.EmployeeSelect>(
     cpf: string,
     select?: T,
-  ): Promise<any> {
+  ): Promise<Prisma.EmployeeGetPayload<{ select?: T }> | null> {
     return this.prisma.employee.findUnique({
       where: { cpf },
       select,
@@ -26,7 +26,7 @@ export class EmployeeRepository {
   public async findById<T extends Prisma.EmployeeSelect>(
     id: number,
     select?: T,
-  ): Promise<any> {
+  ): Promise<Prisma.EmployeeGetPayload<{ select?: T }> | null> {
     return this.prisma.employee.findUnique({
       where: { id },
       select,
@@ -38,7 +38,7 @@ export class EmployeeRepository {
     limit: number,
     where: Prisma.EmployeeWhereInput = {},
     select?: T,
-  ): Promise<any> {
+  ): Promise<Prisma.EmployeeGetPayload<{ select?: T }>[]> {
     return this.prisma.employee.findMany({
       where,
       skip,
