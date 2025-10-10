@@ -5,9 +5,8 @@ enum TimeRecordsType {
 
 model TimeRecords {
   id         Int              @id @default(autoincrement())
-  hour       String           
   employeeId Int
-  date       DateTime         @default(now())
+  dateTime   DateTime         @default(now())
   type       TimeRecordsType
   createdAt  DateTime         @default(now())
   updatedAt  DateTime?
