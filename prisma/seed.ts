@@ -1,14 +1,15 @@
 import { PrismaClient } from '@prisma/client';
-import { adminSeeder } from 'db/seeders/admin.seeder';
-import { employeeSeeder } from 'db/seeders/employee.seeder';
-import { timeRecordsSeeder } from 'db/seeders/time-records.seeder';
+
+import { adminSeeder } from '../db/seeders/admin.seeder';
+import { employeeSeeder } from '../db/seeders/employee.seeder';
+import { timeRecordsSeeder } from '../db/seeders/time-records.seeder';
 
 const prisma = new PrismaClient();
 
 async function main(): Promise<void> {
-  adminSeeder(prisma);
-  employeeSeeder(prisma);
-  timeRecordsSeeder(prisma); // Seeder de employee deve ser executado antes ou já ter employee cadastrados
+  await adminSeeder(prisma);
+  await employeeSeeder(prisma);
+  await timeRecordsSeeder(prisma); // Seeder de employee deve ser executado antes ou já ter employee cadastrados
 }
 
 main()

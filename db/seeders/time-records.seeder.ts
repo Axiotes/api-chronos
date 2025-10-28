@@ -1,5 +1,6 @@
 import { PrismaClient, TimeRecords } from '@prisma/client';
-import { TimeRecordsTypeEnum } from 'src/common/enum/time-records-type.enum';
+
+import { TimeRecordsTypeEnum } from '../../src/common/enum/time-records-type.enum';
 
 export const timeRecordsSeeder = async (
   prisma: PrismaClient,
@@ -25,30 +26,33 @@ export const timeRecordsSeeder = async (
     await employees.forEach(async (employee) => {
       const arrivalHour = parseInt(employee.arrivalTime.split(':')[0]);
       const arrivalMinute = parseInt(employee.arrivalTime.split(':')[1]);
-      const exitHour = parseInt(employee.arrivalTime.split(':')[0]);
-      const exitMinute = parseInt(employee.arrivalTime.split(':')[1]);
+      const exitHour = parseInt(employee.exitTime.split(':')[0]);
+      const exitMinute = parseInt(employee.exitTime.split(':')[1]);
+
+      const dateTimeArrival = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        arrivalHour,
+        arrivalMinute,
+      );
+      const dateTimeExit = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        exitHour,
+        exitMinute,
+      );
 
       const timeRecordArrival = {
         employeeId: employee.id,
-        dateTime: new Date(
-          date.getFullYear(),
-          date.getMonth(),
-          date.getDate(),
-          arrivalHour,
-          arrivalMinute,
-        ),
+        dateTime: new Date(dateTimeArrival.getTime() - 3 * 60 * 60 * 1000),
         type: TimeRecordsTypeEnum.ARRIVAL,
       } as TimeRecords;
       const timeRecordExit = {
         employeeId: employee.id,
-        dateTime: new Date(
-          date.getFullYear(),
-          date.getMonth(),
-          date.getDate(),
-          exitHour,
-          exitMinute,
-        ),
-        type: TimeRecordsTypeEnum.ARRIVAL,
+        dateTime: new Date(dateTimeExit.getTime() - 3 * 60 * 60 * 1000),
+        type: TimeRecordsTypeEnum.EXIT,
       } as TimeRecords;
 
       await prisma.timeRecords.createMany({
