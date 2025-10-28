@@ -37,7 +37,7 @@ export class TimeRecordsRepository {
       },
       select,
       orderBy: {
-        dateTime: 'asc',
+        dateTime: 'desc',
       },
     });
   }
