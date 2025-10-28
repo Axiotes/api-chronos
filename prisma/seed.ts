@@ -1,8 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import { adminSeeder } from 'db/seeders/admin.seeder';
 
 const prisma = new PrismaClient();
 
-async function main() {}
+async function main(): Promise<void> {
+  adminSeeder(prisma);
+}
 
 main()
   .then(async () => {
