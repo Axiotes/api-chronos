@@ -41,4 +41,28 @@ export class TimeRecordsRepository {
       },
     });
   }
+
+  public async findById<T extends Prisma.TimeRecordsSelect>(
+    id: number,
+    select?: T,
+  ): Promise<Prisma.TimeRecordsGetPayload<{ select?: T }> | null> {
+    return this.prisma.timeRecords.findUnique({
+      where: { id },
+      select,
+    });
+  }
+
+  public async findAll<T extends Prisma.TimeRecordsSelect>(
+    skip: number,
+    limit: number,
+    where: Prisma.TimeRecordsWhereInput = {},
+    select?: T,
+  ): Promise<Prisma.TimeRecordsGetPayload<{ select?: T }>[]> {
+    return this.prisma.timeRecords.findMany({
+      where,
+      skip,
+      take: limit,
+      select,
+    });
+  }
 }

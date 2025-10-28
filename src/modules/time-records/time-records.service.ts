@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { TimeRecords } from '@prisma/client';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, TimeRecords } from '@prisma/client';
 
 import { TimeRecordsRepository } from './time-records.repository';
+import { FindTimeRecordsDto } from './dtos/find-time-records.dto';
 
 import { TimeRecordsTypeEnum } from 'src/common/enum/time-records-type.enum';
 
@@ -22,9 +23,7 @@ export class TimeRecordsService {
 
     let newType = TimeRecordsTypeEnum.EXIT;
 
-    console.log(lastTimeRecord?.type);
-
-    if (!lastTimeRecord || lastTimeRecord.type === 'EXIT') {
+    if (!lastTimeRecord || lastTimeRecord.type === TimeRecordsTypeEnum.EXIT) {
       newType = TimeRecordsTypeEnum.ARRIVAL;
     }
 
@@ -33,5 +32,46 @@ export class TimeRecordsService {
       type: newType,
       dateTime: nowInBrazil,
     });
+  }
+
+  public async findById(
+    id: number,
+    select?: Prisma.TimeRecordsSelect,
+  ): Promise<TimeRecords> {
+    const employee = await this.timeRecordsRepository.findById(id, select);
+
+    if (!employee) {
+      throw new NotFoundException(`Time record with ID "${id}" not found`);
+    }
+
+    return employee;
+  }
+
+  public async findAll(
+    findTimeRecordsDto: FindTimeRecordsDto,
+    select?: Prisma.TimeRecordsSelect,
+  ): Promise<TimeRecords[]> {
+    let where = {};
+
+    const filters: { [K in keyof FindTimeRecordsDto]?: () => void } = {
+      employeeId: () =>
+        (where = { ...where, employeeId: findTimeRecordsDto.employeeId }),
+      type: () => (where = { ...where, type: findTimeRecordsDto.type }),
+    };
+
+    for (const key in findTimeRecordsDto) {
+      if (key === 'skip' || key === 'limit') continue;
+
+      const func = filters[key];
+
+      if (func) func();
+    }
+
+    return await this.timeRecordsRepository.findAll(
+      findTimeRecordsDto.skip,
+      findTimeRecordsDto.limit,
+      where,
+      select,
+    );
   }
 }
