@@ -10,5 +10,6 @@ import { ServicesModule } from 'src/common/services/services.module';
   imports: [ServicesModule],
   controllers: [EmployeeController],
   providers: [EmployeeService, EmployeeRepository],
+  exports: [EmployeeService],
 })
 export class EmployeeModule {}
