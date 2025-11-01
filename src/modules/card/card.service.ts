@@ -40,4 +40,21 @@ export class CardService {
 
     return await this.cardRepository.create(employeeId);
   }
+
+  public async activate(employeeId: number): Promise<Cards> {
+    await this.employeeService.findById(employeeId);
+
+    const card = await this.cardRepository.findOne({ employeeId }, true);
+
+    if (!card || card === null) {
+      throw new ConflictException(
+        `Employee with ID ${employeeId} doesn't have any card to activate`,
+      );
+    }
+
+    return await this.cardRepository.update(card.id, {
+      employeeId: card.employeeId,
+      active: true,
+    });
+  }
 }

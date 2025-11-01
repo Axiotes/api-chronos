@@ -1,4 +1,4 @@
-import { Controller, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Controller, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { Cards } from '@prisma/client';
 
 import { CardService } from './card.service';
@@ -14,6 +14,17 @@ export class CardController {
     @Param('id', ParseIntPipe) employeeId: number,
   ): Promise<ApiResponseType<Cards>> {
     const card = await this.cardService.create(employeeId);
+
+    return {
+      data: card,
+    };
+  }
+
+  @Patch('activate/employee/:id')
+  public async activate(
+    @Param('id', ParseIntPipe) employeeId: number,
+  ): Promise<ApiResponseType<Cards>> {
+    const card = await this.cardService.activate(employeeId);
 
     return {
       data: card,

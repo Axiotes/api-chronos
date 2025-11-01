@@ -39,4 +39,11 @@ export class CardRepository {
       include: { employee: includeEmployee },
     });
   }
+
+  public async update(id: number, card: Partial<Cards>): Promise<Cards> {
+    return this.prisma.cards.update({
+      where: { id },
+      data: card,
+    });
+  }
 }
