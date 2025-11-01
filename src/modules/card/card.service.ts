@@ -8,6 +8,7 @@ import { Cards, Prisma } from '@prisma/client';
 import { EmployeeService } from '../employee/employee.service';
 
 import { CardRepository } from './card.repository';
+import { FindCardDto } from './dtos/find-card.dto';
 
 @Injectable()
 export class CardService {
@@ -56,6 +57,34 @@ export class CardService {
     }
 
     return card;
+  }
+
+  public async findAll(
+    findEmployeeDto: FindCardDto,
+    select?: Prisma.CardsSelect,
+  ): Promise<Cards[]> {
+    let where = {};
+
+    const filters: { [K in keyof FindCardDto]?: () => void } = {
+      employeeId: () =>
+        (where = { ...where, employeeId: findEmployeeDto.employeeId }),
+      active: () => (where = { ...where, active: findEmployeeDto.active }),
+    };
+
+    for (const key in findEmployeeDto) {
+      if (key === 'skip' || key === 'limit') continue;
+
+      const func = filters[key];
+
+      if (func) func();
+    }
+
+    return await this.cardRepository.findAll(
+      findEmployeeDto.skip,
+      findEmployeeDto.limit,
+      where,
+      select,
+    );
   }
 
   public async activate(employeeId: number): Promise<Cards> {

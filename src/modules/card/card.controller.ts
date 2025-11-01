@@ -6,12 +6,15 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { Cards } from '@prisma/client';
 
 import { CardService } from './card.service';
+import { FindAllCardsDto } from './dtos/find-all-cards.dto';
 
 import { ApiResponseType } from 'src/common/types/api-response.type';
+import { buildSelectObject } from 'src/common/helpers/build-select-object.helper';
 
 @Controller('card')
 export class CardController {
@@ -36,6 +39,24 @@ export class CardController {
 
     return {
       data: card,
+    };
+  }
+
+  @Get()
+  public async findAll(
+    @Query() query: FindAllCardsDto,
+  ): Promise<ApiResponseType<Cards[]>> {
+    const fields = query.fields ?? [];
+    const allowed = ['id', 'employeeId', 'active'];
+
+    const select = buildSelectObject(fields, allowed);
+
+    const employees = await this.cardService.findAll(query, select);
+
+    return {
+      data: employees,
+      pagination: { skip: query.skip, limit: query.limit },
+      total: employees.length,
     };
   }
 
