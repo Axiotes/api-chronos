@@ -46,4 +46,10 @@ export class CardRepository {
       data: card,
     });
   }
+
+  public async delete(id: number): Promise<Cards> {
+    return this.prisma.cards.delete({
+      where: { id },
+    });
+  }
 }

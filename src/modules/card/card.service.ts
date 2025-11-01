@@ -44,7 +44,7 @@ export class CardService {
   public async activate(employeeId: number): Promise<Cards> {
     await this.employeeService.findById(employeeId);
 
-    const card = await this.cardRepository.findOne({ employeeId }, true);
+    const card = await this.cardRepository.findOne({ employeeId }, false);
 
     if (!card || card === null) {
       throw new ConflictException(
@@ -56,5 +56,21 @@ export class CardService {
       employeeId: card.employeeId,
       active: true,
     });
+  }
+
+  public async delete(employeeId: number): Promise<string> {
+    await this.employeeService.findById(employeeId);
+
+    const card = await this.cardRepository.findOne({ employeeId }, false);
+
+    if (!card || card === null) {
+      throw new ConflictException(
+        `Employee with ID ${employeeId} doesn't have any card`,
+      );
+    }
+
+    await this.cardRepository.delete(card.id);
+
+    return `Card with ID ${card.id} deleted`;
   }
 }
