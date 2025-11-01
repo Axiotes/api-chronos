@@ -1,5 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
-import { Cards } from '@prisma/client';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Cards, Prisma } from '@prisma/client';
 
 import { EmployeeService } from '../employee/employee.service';
 
@@ -39,6 +43,19 @@ export class CardService {
     }
 
     return await this.cardRepository.create(employeeId);
+  }
+
+  public async findById(
+    id: number,
+    select?: Prisma.CardsSelect,
+  ): Promise<Cards> {
+    const card = await this.cardRepository.findById(id, select);
+
+    if (!card) {
+      throw new NotFoundException('Card not found');
+    }
+
+    return card;
   }
 
   public async activate(employeeId: number): Promise<Cards> {

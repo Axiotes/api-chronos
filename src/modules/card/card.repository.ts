@@ -30,6 +30,16 @@ export class CardRepository {
     });
   }
 
+  public async findById<T extends Prisma.CardsSelect>(
+    id: number,
+    select?: T,
+  ): Promise<Prisma.CardsGetPayload<{ select?: T }> | null> {
+    return this.prisma.cards.findUnique({
+      where: { id },
+      select,
+    });
+  }
+
   public async findOne(
     where: Prisma.CardsWhereInput,
     includeEmployee: boolean,

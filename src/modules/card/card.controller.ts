@@ -1,6 +1,7 @@
 import {
   Controller,
   Delete,
+  Get,
   Param,
   ParseIntPipe,
   Patch,
@@ -21,6 +22,17 @@ export class CardController {
     @Param('id', ParseIntPipe) employeeId: number,
   ): Promise<ApiResponseType<Cards>> {
     const card = await this.cardService.create(employeeId);
+
+    return {
+      data: card,
+    };
+  }
+
+  @Get(':id')
+  public async findById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ApiResponseType<Cards>> {
+    const card = await this.cardService.findById(id);
 
     return {
       data: card,
