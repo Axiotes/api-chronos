@@ -8,4 +8,5 @@ model Employee {
   updatedAt    DateTime?
 
   timeRecords TimeRecords[]
+  Cards Cards[]
 }

@@ -1,0 +1,7 @@
+model Cards {
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  active     Boolean
+
+  employee   Employee         @relation(fields: [employeeId], references: [id])
+}
