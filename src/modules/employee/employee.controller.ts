@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -90,5 +91,16 @@ export class EmployeeController {
     const employee = await this.employeeService.update(id, updateEmployeeDto);
 
     return { data: employee };
+  }
+
+  @Delete(':id')
+  public async delete(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ApiResponseType<string>> {
+    const card = await this.employeeService.delete(id);
+
+    return {
+      data: card,
+    };
   }
 }

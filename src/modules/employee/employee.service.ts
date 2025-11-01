@@ -120,4 +120,11 @@ export class EmployeeService {
 
     return await this.employeeRepository.update(id, employeeUpdated);
   }
+
+  public async delete(id: number): Promise<string> {
+    await this.findById(id);
+    await this.employeeRepository.delete(id);
+
+    return `Employee deleted`;
+  }
 }

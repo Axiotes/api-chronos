@@ -56,4 +56,10 @@ export class EmployeeRepository {
       data: employee,
     });
   }
+
+  public async delete(id: number): Promise<Employee> {
+    return this.prisma.employee.delete({
+      where: { id },
+    });
+  }
 }
