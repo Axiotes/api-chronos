@@ -10,6 +10,18 @@ import {
   Query,
 } from '@nestjs/common';
 import { Employee } from '@prisma/client';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { EmployeeService } from './employee.service';
 import { EmployeeDto } from './dtos/employee.dto';
@@ -20,11 +32,93 @@ import { ApiResponseType } from 'src/common/types/api-response.type';
 import { SelectFieldsDto } from 'src/common/dtos/select-fields.dto';
 import { buildSelectObject } from 'src/common/helpers/build-select-object.helper';
 
+@ApiTags('Employee')
 @Controller('employee')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   @Post()
+  @ApiOperation({
+    summary: 'Cadastrar novo funcionário',
+    description: `Endpoint responsável por cadastrar um novo funcionário no sistema de ponto eletrônico.  
+      O cadastro exige informações básicas como nome, CPF, horário de entrada e horário de saída.  
+      O CPF deve ser único, se já existir no banco de dados, será retornado um erro de conflito (409).
+    `,
+  })
+  @ApiBody({
+    description: 'Dados necessários para o cadastro de um funcionário.',
+    required: true,
+    schema: {
+      type: 'object',
+      properties: {
+        name: {
+          type: 'string',
+          example: 'João da Silva',
+          description: 'Nome completo do funcionário (máximo 150 caracteres).',
+        },
+        cpf: {
+          type: 'string',
+          example: '12345678901',
+          description:
+            'CPF do funcionário com exatamente 11 dígitos numéricos (sem pontos ou traços).',
+        },
+        arrivalTime: {
+          type: 'string',
+          example: '08:00',
+          description: 'Horário de entrada no formato HH:MM (24h).',
+        },
+        exitTime: {
+          type: 'string',
+          example: '17:30',
+          description: 'Horário de saída no formato HH:MM (24h).',
+        },
+      },
+      required: ['name', 'cpf', 'arrivalTime', 'exitTime'],
+    },
+  })
+  @ApiCreatedResponse({
+    description: 'Funcionário cadastrado com sucesso.',
+    schema: {
+      example: {
+        statusCode: 201,
+        data: {
+          id: 1,
+          name: 'João da Silva',
+          cpf: '12345678901',
+          arrivalTime: '08:00',
+          exitTime: '17:30',
+          createdAt: '2025-11-02T18:30:00.000Z',
+          updatedAt: null,
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: `Erro de validação.  
+      Pode ocorrer se algum campo obrigatório estiver ausente, se o formato do horário estiver incorreto,  
+      ou se o CPF não tiver exatamente 11 dígitos.`,
+    schema: {
+      example: {
+        statusCode: 400,
+        message: [
+          'cpf must be longer than or equal to 11 characters',
+          'arrivalTime must be in HH:MM format',
+          'exitTime must be in HH:MM format',
+        ],
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiConflictResponse({
+    description: `Conflito: já existe um funcionário cadastrado com o mesmo CPF.`,
+    schema: {
+      example: {
+        statusCode: 409,
+        message: 'Employee with the CPF "12345678901" already exists',
+        error: 'Conflict',
+      },
+    },
+  })
   public async create(
     @Body() employeeDto: EmployeeDto,
   ): Promise<ApiResponseType<Employee>> {
@@ -34,6 +128,60 @@ export class EmployeeController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Buscar funcionário por ID',
+    description: `Endpoint responsável por buscar um funcionário específico pelo seu ID.  
+      É possível também informar, através do parâmetro de consulta \`fields\`,  
+      quais campos devem ser retornados na resposta. Por exemplo, para retornar apenas o id, nome e cpf do funcionário:
+      
+      \`GET /employee/1?fields=id,name,cpf\`  
+    `,
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    example: 1,
+    description: 'ID numérico do funcionário a ser buscado.',
+    required: true,
+  })
+  @ApiOkResponse({
+    description: 'Funcionário encontrado com sucesso.',
+    schema: {
+      example: {
+        statusCode: 200,
+        data: {
+          id: 1,
+          name: 'João da Silva',
+          cpf: '12345678901',
+          arrivalTime: '08:00',
+          exitTime: '17:30',
+          created_at: '2025-11-02T18:30:00.000Z',
+          updated_at: null,
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: `Erro de requisição inválida.  
+      Pode ocorrer se o ID não for numérico ou se o formato do parâmetro \`fields\` estiver incorreto.`,
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Validation failed (numeric string is expected)',
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Funcionário não encontrado.',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Employee with ID "1" not found',
+        error: 'Not Found',
+      },
+    },
+  })
   public async findById(
     @Param('id', ParseIntPipe) id: number,
     @Query() query: SelectFieldsDto,
@@ -57,6 +205,124 @@ export class EmployeeController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'Listar funcionários',
+    description: `Endpoint responsável por listar os funcionários cadastrados no sistema.  
+      Permite paginação, filtros e seleção de campos específicos. Exemplos de uso:]
+
+      - \`GET /employee?skip=0&limit=10\` → Lista os 10 primeiros funcionários  
+      - \`GET /employee?name=joão&skip=0&limit=5\` → Busca funcionários cujo nome contenha "joão"  
+      - \`GET /employee?fields=id,name,cpf&skip=0&limit=10\` → Retorna apenas os campos informados
+    `,
+  })
+  @ApiQuery({
+    name: 'skip',
+    required: true,
+    type: Number,
+    example: 0,
+    description:
+      'Número de registros a serem ignorados (para paginação). Deve ser >= 0.',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: true,
+    type: Number,
+    example: 10,
+    description:
+      'Quantidade máxima de registros a serem retornados. Deve ser >= 1.',
+  })
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    type: String,
+    example: 'João',
+    description:
+      'Filtra funcionários cujo nome contenha o valor informado (case insensitive).',
+  })
+  @ApiQuery({
+    name: 'cpf',
+    required: false,
+    type: String,
+    example: '12345678901',
+    description: 'Filtra funcionários com o CPF exato informado (11 dígitos).',
+  })
+  @ApiQuery({
+    name: 'arrivalTime',
+    required: false,
+    type: String,
+    example: '08:00',
+    description:
+      'Filtra funcionários cujo horário de entrada contenha o valor informado (formato HH:MM).',
+  })
+  @ApiQuery({
+    name: 'exitTime',
+    required: false,
+    type: String,
+    example: '17:30',
+    description:
+      'Filtra funcionários cujo horário de saída contenha o valor informado (formato HH:MM).',
+  })
+  @ApiQuery({
+    name: 'fields',
+    required: false,
+    type: String,
+    isArray: true,
+    example: ['id', 'name', 'cpf'],
+    description: `Lista opcional de campos a serem retornados, separados por vírgula.  
+    Campos permitidos: id, name, cpf, email, arrivalTime, exitTime, created_at, updated_at.`,
+    style: 'form',
+    explode: false,
+  })
+  @ApiOkResponse({
+    description: 'Lista de funcionários retornada com sucesso.',
+    schema: {
+      example: {
+        statusCode: 200,
+        data: [
+          {
+            id: 1,
+            name: 'João da Silva',
+            cpf: '12345678901',
+            email: 'joao@email.com',
+            arrivalTime: '08:00',
+            exitTime: '17:30',
+            created_at: '2025-11-02T18:30:00.000Z',
+            updated_at: null,
+          },
+          {
+            id: 2,
+            name: 'Maria Souza',
+            cpf: '98765432100',
+            email: 'maria@email.com',
+            arrivalTime: '09:00',
+            exitTime: '18:00',
+            created_at: '2025-11-01T17:20:00.000Z',
+            updated_at: null,
+          },
+        ],
+        pagination: {
+          skip: 0,
+          limit: 10,
+        },
+        total: 2,
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: `Erro de validação nos parâmetros da requisição.  
+      Pode ocorrer se os parâmetros de paginação não forem numéricos,  
+      ou se os horários estiverem em formato incorreto.`,
+    schema: {
+      example: {
+        statusCode: 400,
+        message: [
+          'skip must not be less than 0',
+          'arrivalTime must be in HH:MM format',
+        ],
+        error: 'Bad Request',
+      },
+    },
+  })
   public async findAll(
     @Query() query: FindAllEmployeeDto,
   ): Promise<ApiResponseType<Employee[]>> {
@@ -84,6 +350,106 @@ export class EmployeeController {
   }
 
   @Patch(':id')
+  @ApiOperation({
+    summary: 'Atualizar um funcionário',
+    description: `Atualiza as informações de um funcionário existente com base no seu ID.
+      Este endpoint permite alterar parcialmente ou totalmente os dados de um funcionário, como nome, CPF, horário de entrada e saída.
+      Regras importantes:
+
+      - O campo CPF deve conter exatamente 11 dígitos e ser único no sistema.
+      - Todos os campos são opcionais, mas devem seguir o formato e validações esperadas.
+      - Caso o funcionário não exista, será retornado um erro 404 (Not Found).
+      - Caso o CPF já esteja em uso, será retornado um erro 409 (Conflict).
+  `,
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    type: Number,
+    description: 'Identificador único do funcionário que será atualizado.',
+    example: 12,
+  })
+  @ApiBody({
+    description: `Corpo da requisição contendo os campos a serem atualizados.
+      Todos os campos são opcionais, mas devem seguir as validações esperadas.
+    `,
+    schema: {
+      type: 'object',
+      properties: {
+        name: {
+          type: 'string',
+          example: 'Carlos Oliveira',
+          description: 'Nome completo do funcionário (máx. 150 caracteres).',
+        },
+        cpf: {
+          type: 'string',
+          example: '98765432100',
+          description:
+            'CPF do funcionário, com exatamente 11 dígitos e único no sistema.',
+        },
+        arrivalTime: {
+          type: 'string',
+          example: '08:00',
+          description: 'Horário de entrada no formato HH:MM (00:00–23:59).',
+        },
+        exitTime: {
+          type: 'string',
+          example: '17:00',
+          description: 'Horário de saída no formato HH:MM (00:00–23:59).',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Funcionário atualizado com sucesso.',
+    schema: {
+      example: {
+        statusCode: 200,
+        data: {
+          id: 12,
+          name: 'Carlos Oliveira',
+          cpf: '98765432100',
+          arrivalTime: '08:00',
+          exitTime: '17:00',
+          createdAt: '2025-11-02T10:30:00.000Z',
+          updatedAt: '2025-11-02T15:42:12.221Z',
+        },
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Nenhum funcionário encontrado com o ID informado.',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Employee with ID "12" not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  @ApiConflictResponse({
+    description: 'Já existe um funcionário com o CPF informado.',
+    schema: {
+      example: {
+        statusCode: 409,
+        message: 'Employee with the CPF "98765432100" already exists',
+        error: 'Conflict',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Erro de validação nos dados enviados.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: [
+          'arrivalTime must be in HH:MM format',
+          'cpf must be exactly 11 characters long',
+        ],
+        error: 'Bad Request',
+      },
+    },
+  })
   public async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
@@ -94,6 +460,51 @@ export class EmployeeController {
   }
 
   @Delete(':id')
+  @ApiOperation({
+    summary: 'Excluir um funcionário',
+    description: `Remove permanentemente um funcionário do sistema com base no seu ID. Regras importantes:
+    
+    - O ID é obrigatório e deve ser um número inteiro válido.
+    - Caso o funcionário não exista, será retornado um erro 404 (Not Found).
+    - A exclusão é definitiva, não podendo ser desfeita.
+    `,
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    type: Number,
+    description: 'Identificador único do funcionário que será excluído.',
+    example: 7,
+  })
+  @ApiOkResponse({
+    description: 'Funcionário excluído com sucesso.',
+    schema: {
+      example: {
+        statusCode: 200,
+        data: 'Employee deleted',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Nenhum funcionário encontrado com o ID informado.',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Employee with ID "7" not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Erro de validação nos parâmetros da requisição.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Validation failed (numeric string is expected)',
+        error: 'Bad Request',
+      },
+    },
+  })
   public async delete(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ApiResponseType<string>> {
