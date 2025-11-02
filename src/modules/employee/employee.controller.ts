@@ -19,6 +19,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -204,6 +205,124 @@ export class EmployeeController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'Listar funcionários',
+    description: `Endpoint responsável por listar os funcionários cadastrados no sistema.  
+      Permite paginação, filtros e seleção de campos específicos. Exemplos de uso:]
+
+      - \`GET /employee?skip=0&limit=10\` → Lista os 10 primeiros funcionários  
+      - \`GET /employee?name=joão&skip=0&limit=5\` → Busca funcionários cujo nome contenha "joão"  
+      - \`GET /employee?fields=id,name,cpf&skip=0&limit=10\` → Retorna apenas os campos informados
+    `,
+  })
+  @ApiQuery({
+    name: 'skip',
+    required: true,
+    type: Number,
+    example: 0,
+    description:
+      'Número de registros a serem ignorados (para paginação). Deve ser >= 0.',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: true,
+    type: Number,
+    example: 10,
+    description:
+      'Quantidade máxima de registros a serem retornados. Deve ser >= 1.',
+  })
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    type: String,
+    example: 'João',
+    description:
+      'Filtra funcionários cujo nome contenha o valor informado (case insensitive).',
+  })
+  @ApiQuery({
+    name: 'cpf',
+    required: false,
+    type: String,
+    example: '12345678901',
+    description: 'Filtra funcionários com o CPF exato informado (11 dígitos).',
+  })
+  @ApiQuery({
+    name: 'arrivalTime',
+    required: false,
+    type: String,
+    example: '08:00',
+    description:
+      'Filtra funcionários cujo horário de entrada contenha o valor informado (formato HH:MM).',
+  })
+  @ApiQuery({
+    name: 'exitTime',
+    required: false,
+    type: String,
+    example: '17:30',
+    description:
+      'Filtra funcionários cujo horário de saída contenha o valor informado (formato HH:MM).',
+  })
+  @ApiQuery({
+    name: 'fields',
+    required: false,
+    type: String,
+    isArray: true,
+    example: ['id', 'name', 'cpf'],
+    description: `Lista opcional de campos a serem retornados, separados por vírgula.  
+    Campos permitidos: id, name, cpf, email, arrivalTime, exitTime, created_at, updated_at.`,
+    style: 'form',
+    explode: false,
+  })
+  @ApiOkResponse({
+    description: 'Lista de funcionários retornada com sucesso.',
+    schema: {
+      example: {
+        statusCode: 200,
+        data: [
+          {
+            id: 1,
+            name: 'João da Silva',
+            cpf: '12345678901',
+            email: 'joao@email.com',
+            arrivalTime: '08:00',
+            exitTime: '17:30',
+            created_at: '2025-11-02T18:30:00.000Z',
+            updated_at: null,
+          },
+          {
+            id: 2,
+            name: 'Maria Souza',
+            cpf: '98765432100',
+            email: 'maria@email.com',
+            arrivalTime: '09:00',
+            exitTime: '18:00',
+            created_at: '2025-11-01T17:20:00.000Z',
+            updated_at: null,
+          },
+        ],
+        pagination: {
+          skip: 0,
+          limit: 10,
+        },
+        total: 2,
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: `Erro de validação nos parâmetros da requisição.  
+      Pode ocorrer se os parâmetros de paginação não forem numéricos,  
+      ou se os horários estiverem em formato incorreto.`,
+    schema: {
+      example: {
+        statusCode: 400,
+        message: [
+          'skip must not be less than 0',
+          'arrivalTime must be in HH:MM format',
+        ],
+        error: 'Bad Request',
+      },
+    },
+  })
   public async findAll(
     @Query() query: FindAllEmployeeDto,
   ): Promise<ApiResponseType<Employee[]>> {
