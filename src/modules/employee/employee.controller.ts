@@ -355,7 +355,7 @@ export class EmployeeController {
     description: `Atualiza as informações de um funcionário existente com base no seu ID.
       Este endpoint permite alterar parcialmente ou totalmente os dados de um funcionário, como nome, CPF, horário de entrada e saída.
       Regras importantes:
-      
+
       - O campo CPF deve conter exatamente 11 dígitos e ser único no sistema.
       - Todos os campos são opcionais, mas devem seguir o formato e validações esperadas.
       - Caso o funcionário não exista, será retornado um erro 404 (Not Found).
@@ -460,6 +460,51 @@ export class EmployeeController {
   }
 
   @Delete(':id')
+  @ApiOperation({
+    summary: 'Excluir um funcionário',
+    description: `Remove permanentemente um funcionário do sistema com base no seu ID. Regras importantes:
+    
+    - O ID é obrigatório e deve ser um número inteiro válido.
+    - Caso o funcionário não exista, será retornado um erro 404 (Not Found).
+    - A exclusão é definitiva, não podendo ser desfeita.
+    `,
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    type: Number,
+    description: 'Identificador único do funcionário que será excluído.',
+    example: 7,
+  })
+  @ApiOkResponse({
+    description: 'Funcionário excluído com sucesso.',
+    schema: {
+      example: {
+        statusCode: 200,
+        data: 'Employee deleted',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Nenhum funcionário encontrado com o ID informado.',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Employee with ID "7" not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Erro de validação nos parâmetros da requisição.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Validation failed (numeric string is expected)',
+        error: 'Bad Request',
+      },
+    },
+  })
   public async delete(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ApiResponseType<string>> {
