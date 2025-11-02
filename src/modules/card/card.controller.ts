@@ -14,6 +14,7 @@ import {
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -100,6 +101,50 @@ export class CardController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Buscar cartão por ID',
+    description:
+      'Retorna os detalhes de um cartão específico, identificado pelo ID do cartão.',
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    required: true,
+    example: 34,
+    description: 'Identificador único do cartão.',
+  })
+  @ApiOkResponse({
+    description: 'Cartão encontrado com sucesso.',
+    schema: {
+      example: {
+        data: {
+          id: 34,
+          employeeId: 12,
+          active: false,
+        },
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Cartão não encontrado.',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Card not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'ID inválido ou parâmetro incorreto.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Validation failed (numeric string is expected)',
+        error: 'Bad Request',
+      },
+    },
+  })
   public async findById(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ApiResponseType<Cards>> {
