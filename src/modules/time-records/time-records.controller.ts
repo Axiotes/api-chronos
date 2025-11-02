@@ -11,6 +11,7 @@ import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -88,6 +89,54 @@ export class TimeRecordsController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Buscar registro de entrada ou saída de funcionário por ID',
+    description:
+      'Retorna os detalhes de um registro específico de ponto de um funcionário, identificado pelo ID do registro.',
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    required: true,
+    example: 45,
+    description: 'Identificador único do registro de ponto.',
+  })
+  @ApiOkResponse({
+    description: 'Registro de ponto encontrado com sucesso.',
+    schema: {
+      example: {
+        statusCode: 200,
+        data: {
+          id: 45,
+          employeeId: 12,
+          dateTime: '2025-11-02T08:30:00.000Z',
+          type: 'ARRIVAL',
+          createdAt: '2025-11-02T08:30:01.123Z',
+          updatedAt: null,
+        },
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Registro de ponto não encontrado.',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Time record with ID "45" not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'ID inválido ou parâmetro incorreto.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Validation failed (numeric string is expected)',
+        error: 'Bad Request',
+      },
+    },
+  })
   public async findById(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ApiResponseType<TimeRecords>> {
