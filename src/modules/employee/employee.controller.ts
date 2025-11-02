@@ -350,6 +350,106 @@ export class EmployeeController {
   }
 
   @Patch(':id')
+  @ApiOperation({
+    summary: 'Atualizar um funcionário',
+    description: `Atualiza as informações de um funcionário existente com base no seu ID.
+      Este endpoint permite alterar parcialmente ou totalmente os dados de um funcionário, como nome, CPF, horário de entrada e saída.
+      Regras importantes:
+      
+      - O campo CPF deve conter exatamente 11 dígitos e ser único no sistema.
+      - Todos os campos são opcionais, mas devem seguir o formato e validações esperadas.
+      - Caso o funcionário não exista, será retornado um erro 404 (Not Found).
+      - Caso o CPF já esteja em uso, será retornado um erro 409 (Conflict).
+  `,
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    type: Number,
+    description: 'Identificador único do funcionário que será atualizado.',
+    example: 12,
+  })
+  @ApiBody({
+    description: `Corpo da requisição contendo os campos a serem atualizados.
+      Todos os campos são opcionais, mas devem seguir as validações esperadas.
+    `,
+    schema: {
+      type: 'object',
+      properties: {
+        name: {
+          type: 'string',
+          example: 'Carlos Oliveira',
+          description: 'Nome completo do funcionário (máx. 150 caracteres).',
+        },
+        cpf: {
+          type: 'string',
+          example: '98765432100',
+          description:
+            'CPF do funcionário, com exatamente 11 dígitos e único no sistema.',
+        },
+        arrivalTime: {
+          type: 'string',
+          example: '08:00',
+          description: 'Horário de entrada no formato HH:MM (00:00–23:59).',
+        },
+        exitTime: {
+          type: 'string',
+          example: '17:00',
+          description: 'Horário de saída no formato HH:MM (00:00–23:59).',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Funcionário atualizado com sucesso.',
+    schema: {
+      example: {
+        statusCode: 200,
+        data: {
+          id: 12,
+          name: 'Carlos Oliveira',
+          cpf: '98765432100',
+          arrivalTime: '08:00',
+          exitTime: '17:00',
+          createdAt: '2025-11-02T10:30:00.000Z',
+          updatedAt: '2025-11-02T15:42:12.221Z',
+        },
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Nenhum funcionário encontrado com o ID informado.',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Employee with ID "12" not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  @ApiConflictResponse({
+    description: 'Já existe um funcionário com o CPF informado.',
+    schema: {
+      example: {
+        statusCode: 409,
+        message: 'Employee with the CPF "98765432100" already exists',
+        error: 'Conflict',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Erro de validação nos dados enviados.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: [
+          'arrivalTime must be in HH:MM format',
+          'cpf must be exactly 11 characters long',
+        ],
+        error: 'Bad Request',
+      },
+    },
+  })
   public async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
