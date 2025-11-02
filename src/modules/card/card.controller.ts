@@ -17,6 +17,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -156,6 +157,72 @@ export class CardController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'Listar cartões',
+    description:
+      'Retorna uma lista de cartões com paginação e possibilidade de filtros por funcionário e status do cartão. ' +
+      'Também é possível selecionar quais campos devem ser retornados na resposta.',
+  })
+  @ApiQuery({
+    name: 'skip',
+    required: true,
+    type: Number,
+    example: 0,
+    description: 'Quantidade de registros a pular (para paginação).',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: true,
+    type: Number,
+    example: 10,
+    description: 'Quantidade máxima de registros retornados (para paginação).',
+  })
+  @ApiQuery({
+    name: 'employeeId',
+    required: false,
+    type: Number,
+    example: 12,
+    description: 'Filtra os cartões de um funcionário específico pelo ID.',
+  })
+  @ApiQuery({
+    name: 'active',
+    required: false,
+    type: Boolean,
+    example: true,
+    description: 'Filtra os cartões pelo status ativo/inativo.',
+  })
+  @ApiQuery({
+    name: 'fields',
+    required: false,
+    type: [String],
+    example: ['id', 'employeeId', 'active'],
+    description:
+      'Lista opcional de campos a serem retornados na resposta, separados por vírgula. ' +
+      'Campos permitidos: id, employeeId, active.',
+  })
+  @ApiOkResponse({
+    description: 'Lista de cartões retornada com sucesso.',
+    schema: {
+      example: {
+        data: [
+          { id: 34, employeeId: 12, active: false },
+          { id: 35, employeeId: 15, active: true },
+        ],
+        pagination: { skip: 0, limit: 10 },
+        total: 2,
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Parâmetros inválidos ou incorretos.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Validation failed (numeric string is expected)',
+        error: 'Bad Request',
+      },
+    },
+  })
   public async findAll(
     @Query() query: FindAllCardsDto,
   ): Promise<ApiResponseType<Cards[]>> {
