@@ -15,7 +15,10 @@ import {
   ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -124,6 +127,60 @@ export class EmployeeController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Buscar funcionário por ID',
+    description: `Endpoint responsável por buscar um funcionário específico pelo seu ID.  
+      É possível também informar, através do parâmetro de consulta \`fields\`,  
+      quais campos devem ser retornados na resposta. Por exemplo, para retornar apenas o id, nome e cpf do funcionário:
+      
+      \`GET /employee/1?fields=id,name,cpf\`  
+    `,
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    example: 1,
+    description: 'ID numérico do funcionário a ser buscado.',
+    required: true,
+  })
+  @ApiOkResponse({
+    description: 'Funcionário encontrado com sucesso.',
+    schema: {
+      example: {
+        statusCode: 200,
+        data: {
+          id: 1,
+          name: 'João da Silva',
+          cpf: '12345678901',
+          arrivalTime: '08:00',
+          exitTime: '17:30',
+          created_at: '2025-11-02T18:30:00.000Z',
+          updated_at: null,
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: `Erro de requisição inválida.  
+      Pode ocorrer se o ID não for numérico ou se o formato do parâmetro \`fields\` estiver incorreto.`,
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Validation failed (numeric string is expected)',
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Funcionário não encontrado.',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Employee with ID "1" not found',
+        error: 'Not Found',
+      },
+    },
+  })
   public async findById(
     @Param('id', ParseIntPipe) id: number,
     @Query() query: SelectFieldsDto,
