@@ -241,6 +241,61 @@ export class CardController {
   }
 
   @Patch('activate/employee/:id')
+  @ApiOperation({
+    summary: 'Ativar cartão de um funcionário',
+    description:
+      'Ativa o cartão de um funcionário específico pelo ID do funcionário. ' +
+      'O cartão deve estar previamente cadastrado.',
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    required: true,
+    example: 12,
+    description: 'ID do funcionário que terá o cartão ativado.',
+  })
+  @ApiOkResponse({
+    description: 'Cartão ativado com sucesso.',
+    schema: {
+      example: {
+        data: {
+          id: 34,
+          employeeId: 12,
+          active: true,
+        },
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Funcionário não encontrado.',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Employee with ID "12" not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  @ApiConflictResponse({
+    description: 'O funcionário não possui cartão cadastrado para ativação.',
+    schema: {
+      example: {
+        statusCode: 409,
+        message: "Employee with ID 12 doesn't have any card to activate",
+        error: 'Conflict',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'ID inválido ou parâmetro incorreto.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Validation failed (numeric string is expected)',
+        error: 'Bad Request',
+      },
+    },
+  })
   public async activate(
     @Param('id', ParseIntPipe) employeeId: number,
   ): Promise<ApiResponseType<Cards>> {
