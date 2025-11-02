@@ -14,6 +14,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -22,6 +23,7 @@ import { FindAllTimeRecordsDto } from './dtos/find-all-time-records.dto';
 
 import { ApiResponseType } from 'src/common/types/api-response.type';
 import { buildSelectObject } from 'src/common/helpers/build-select-object.helper';
+import { TimeRecordsTypeEnum } from 'src/common/enum/time-records-type.enum';
 
 @ApiTags('Time Records')
 @Controller('time-records')
@@ -148,6 +150,84 @@ export class TimeRecordsController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'Listar registros de entrada/saída de funcionários',
+    description:
+      'Retorna uma lista de registros de ponto de funcionários, com suporte a filtros por funcionário ou tipo de registro e paginações.',
+  })
+  @ApiQuery({
+    name: 'skip',
+    required: true,
+    type: Number,
+    description: 'Número de registros a serem pulados (para paginação).',
+    example: 0,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: true,
+    type: Number,
+    description: 'Quantidade máxima de registros a serem retornados.',
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'employeeId',
+    required: false,
+    type: Number,
+    description: 'Filtra os registros de um funcionário específico pelo ID.',
+    example: 12,
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: TimeRecordsTypeEnum,
+    description: 'Filtra registros por tipo: ARRIVAL ou EXIT.',
+    example: TimeRecordsTypeEnum.ARRIVAL,
+  })
+  @ApiQuery({
+    name: 'fields',
+    required: false,
+    type: [String],
+    description:
+      'Lista opcional de campos a serem retornados, separados por vírgula. Campos permitidos: id, employeeId, type, created_at, updated_at.',
+    example: ['id', 'employeeId', 'type'],
+  })
+  @ApiOkResponse({
+    description: 'Lista de registros retornada com sucesso.',
+    schema: {
+      example: {
+        statusCode: 200,
+        data: [
+          {
+            id: 45,
+            employeeId: 12,
+            type: 'ARRIVAL',
+            createdAt: '2025-11-02T08:30:01.123Z',
+            updatedAt: null,
+          },
+          {
+            id: 46,
+            employeeId: 12,
+            type: 'EXIT',
+            createdAt: '2025-11-02T17:05:01.123Z',
+            updatedAt: null,
+          },
+        ],
+        pagination: { skip: 0, limit: 10 },
+        total: 2,
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Parâmetros inválidos ou erro de validação.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message:
+          'Validation failed (numeric string is expected for skip/limit)',
+        error: 'Bad Request',
+      },
+    },
+  })
   public async findAll(
     @Query() query: FindAllTimeRecordsDto,
   ): Promise<ApiResponseType<TimeRecords[]>> {
