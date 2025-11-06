@@ -101,6 +101,15 @@ export class CardController {
     };
   }
 
+  @Get('pending')
+  public async pending(): Promise<ApiResponseType<Cards>> {
+    const card = await this.cardService.pending();
+
+    return {
+      data: card,
+    };
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Buscar cartão por ID',

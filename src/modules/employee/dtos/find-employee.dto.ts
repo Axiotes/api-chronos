@@ -22,15 +22,6 @@ export class FindEmployeeDto {
   limit: number;
 
   @ApiPropertyOptional({
-    description:
-      'Filtra funcionários pelo nome (busca parcial, case insensitive).',
-    example: 'João',
-  })
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @ApiPropertyOptional({
     description: 'Filtra funcionários pelo CPF (11 dígitos).',
     example: '12345678901',
   })
