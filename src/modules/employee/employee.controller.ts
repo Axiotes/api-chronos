@@ -232,14 +232,6 @@ export class EmployeeController {
       'Quantidade máxima de registros a serem retornados. Deve ser >= 1.',
   })
   @ApiQuery({
-    name: 'name',
-    required: false,
-    type: String,
-    example: 'João',
-    description:
-      'Filtra funcionários cujo nome contenha o valor informado (case insensitive).',
-  })
-  @ApiQuery({
     name: 'cpf',
     required: false,
     type: String,

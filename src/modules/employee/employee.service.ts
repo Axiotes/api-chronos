@@ -54,7 +54,6 @@ export class EmployeeService {
           ...where,
           arrivalTime: {
             contains: findEmployeeDto.arrivalTime,
-            mode: 'insensitive',
           },
         }),
       exitTime: () =>
@@ -62,7 +61,6 @@ export class EmployeeService {
           ...where,
           exitTime: {
             contains: findEmployeeDto.exitTime,
-            mode: 'insensitive',
           },
         }),
     };
