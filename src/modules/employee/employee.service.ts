@@ -49,17 +49,11 @@ export class EmployeeService {
 
     const filters: { [K in keyof FindEmployeeDto]?: () => void } = {
       cpf: () => (where = { ...where, cpf: findEmployeeDto.cpf }),
-      name: () =>
-        (where = {
-          ...where,
-          name: { contains: findEmployeeDto.name, mode: 'insensitive' },
-        }),
       arrivalTime: () =>
         (where = {
           ...where,
           arrivalTime: {
             contains: findEmployeeDto.arrivalTime,
-            mode: 'insensitive',
           },
         }),
       exitTime: () =>
@@ -67,7 +61,6 @@ export class EmployeeService {
           ...where,
           exitTime: {
             contains: findEmployeeDto.exitTime,
-            mode: 'insensitive',
           },
         }),
     };

@@ -119,4 +119,14 @@ export class CardService {
 
     return `Card with ID ${card.id} deleted`;
   }
+
+  public async pending(): Promise<Cards> {
+    const card = await this.cardRepository.findOne({ active: false }, false);
+
+    if (!card || card === null) {
+      throw new ConflictException('There are no pending cards to be assigned');
+    }
+
+    return card;
+  }
 }

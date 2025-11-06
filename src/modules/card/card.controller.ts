@@ -101,6 +101,43 @@ export class CardController {
     };
   }
 
+  @Get('pending')
+  @ApiOperation({
+    summary: 'Buscar cartão pendente',
+    description:
+      'Retorna o cartão pendente (não ativo) disponível para ser atribuído a um funcionário. ' +
+      'Caso não exista nenhum cartão pendente, o endpoint retorna um erro de conflito.',
+  })
+  @ApiOkResponse({
+    description: 'Cartão pendente encontrado com sucesso.',
+    schema: {
+      example: {
+        data: {
+          id: 34,
+          employeeId: null,
+          active: false,
+        },
+      },
+    },
+  })
+  @ApiConflictResponse({
+    description: 'Nenhum cartão pendente encontrado.',
+    schema: {
+      example: {
+        statusCode: 409,
+        message: 'There are no pending cards to be assigned',
+        error: 'Conflict',
+      },
+    },
+  })
+  public async pending(): Promise<ApiResponseType<Cards>> {
+    const card = await this.cardService.pending();
+
+    return {
+      data: card,
+    };
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Buscar cartão por ID',
