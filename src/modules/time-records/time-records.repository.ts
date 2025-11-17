@@ -13,7 +13,12 @@ export class TimeRecordsRepository {
     type: TimeRecordsTypeEnum;
     dateTime: Date;
   }): Promise<TimeRecords> {
-    return await this.prisma.timeRecords.create({ data: timeRecords });
+    return await this.prisma.timeRecords.create({
+      data: timeRecords,
+      include: {
+        employee: true,
+      },
+    });
   }
 
   public async findLastEmployeeRecord<T extends Prisma.TimeRecordsSelect>(
